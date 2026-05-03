@@ -1,0 +1,95 @@
+# CURSOR RULES — TRADING ANALYTICS APP
+# File ini dibaca otomatis oleh Cursor setiap sesi
+
+## Identitas Proyek
+- Nama     : Trading Analytics App
+- Stack    : Next.js 14 (App Router) + Express.js + TypeScript
+- Database : PostgreSQL + TimescaleDB + Redis
+- Akses DB : pg (node-postgres) — **SQL mentah**, tanpa ORM (selaras ARSITEKTUR.md & CHECKPOINT slice 2)
+- Queue    : BullMQ
+- API      : Binance API (crypto) / Polygon.io (saham)
+
+## Aturan Wajib
+- Selalu gunakan TypeScript strict mode
+- Semua fungsi async wajib ada try/catch
+- Semua env variable dari process.env, JANGAN hardcode
+- Setiap endpoint Express wajib ada rate limiter
+- JANGAN fetch API trading langsung dari frontend
+- JANGAN buka koneksi DB baru tiap request (pakai pool)
+- Selalu mulai slice baru dengan Plan Mode (Shift+Tab)
+- Simpan hasil plan ke .cursor/plans/
+- Cek CHECKPOINT.md sebelum mulai mengerjakan apapun
+- Update CONTEXT.md setelah selesai tiap slice
+- Rantai konteks: baca CHECKPOINT + CONTEXT + **plan file slice aktif** (path ada di CONTEXT, baris "Plan file (slice aktif)"); jangan mengacu ke plan slice yang sudah selesai kecuali untuk referensi
+- Todo di `.cursor/plans/*.md` (frontmatter `todos:`) harus selaras dengan checklist slice yang sama di CHECKPOINT.md
+
+## Cara Mulai Sesi Baru di Cursor 3
+1. Buka Agents Window → Cmd+Shift+P → "Agents Window"
+2. Prompt pertama: salin dari CONTEXT.md bagian **Prompt pembuka setiap sesi baru** (berisi @ CHECKPOINT, CONTEXT, dan plan slice aktif)
+3. Untuk task baru → tekan Shift+Tab untuk aktifkan Plan Mode
+4. Review plan yang dibuat Cursor, edit jika perlu; samakan `todos` di frontmatter plan dengan checklist slice di CHECKPOINT
+5. Simpan plan → klik "Save to workspace" → tersimpan di .cursor/plans/ → **update CONTEXT.md** (Plan file slice aktif) → isi PROMPT_LOG (PLAN MODE)
+
+## Kapan Pakai Plan Mode
+- Selalu pakai Plan Mode di awal tiap slice baru
+- Pakai juga kalau hasil Cursor tidak sesuai ekspektasi
+     (lebih baik balik ke plan dan revisi daripada fix lewat follow-up prompt)
+- Tidak perlu Plan Mode untuk perubahan kecil/sederhana
+
+## Struktur Folder
+```
+project/
+├── .cursor/
+│   ├── rules              ← file ini
+│   └── plans/             ← hasil Plan Mode tersimpan di sini
+│       ├── slice-1-setup.md
+│       ├── slice-2-database.md
+│       ├── slice-3-redis.md
+│       ├── slice-4-indicators.md
+│       ├── slice-5-endpoints.md
+│       ├── slice-6-frontend.md
+│       ├── slice-7-screening.md
+│       ├── slice-8-auth.md
+│       └── TEMPLATE_SLICE.md   ← salin untuk plan baru; samakan todos dengan CHECKPOINT
+├── frontend/
+│   ├── app/
+│   │   ├── (auth)/
+│   │   ├── dashboard/
+│   │   └── screening/
+│   └── components/
+│       ├── charts/
+│       └── screening/
+├── backend/
+│   ├── src/                 ← kode Express (features, config, dll.)
+│   ├── db/                  ← script .sql (schema/migrasi/seeds); dipakai backend saja
+│   ├── routes/              ← referensi arsitektur (bisa mirror ke src/)
+│   │   ├── indicators.ts
+│   │   ├── screening.ts
+│   │   └── market.ts
+│   ├── services/
+│   │   ├── cache.ts
+│   │   ├── queue.ts
+│   │   └── indicators.ts
+│   └── jobs/
+│       └── fetchMarketData.ts
+├── CHECKPOINT.md
+├── CONTEXT.md
+└── PROMPT_LOG.md
+```
+
+## Alur Data
+```
+Binance/Polygon API
+       ↓ (Cron Job tiap 1 menit — BUKAN tiap request user)
+  BullMQ Queue → Express Service
+       ↓
+  Redis Cache (TTL 60 detik) ←→ PostgreSQL/TimescaleDB
+       ↓
+  Next.js Frontend → Chart + Tabel Screening
+```
+
+## Indikator
+- MA 20 & MA 30 — Moving Average
+- Bollinger Bands (BA)
+- Stochastic Oscillator (Sto)
+- Sinyal BUY/SELL/HOLD dari kombinasi indikator
