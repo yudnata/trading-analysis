@@ -21,13 +21,13 @@ Urutan **@ mention** di prompt pembuka (Agents / Chat):
 
 ## State Terkini
 
-- **Slice Aktif        :** 5 — API Endpoints Backend
+- **Slice Aktif        :** 6 — Frontend Chart & Tampilan
 - **Status             :** ⏳ Belum Mulai
-- **Plan file (slice aktif):** `belum ada` — setelah Plan Mode, simpan ke [.cursor/plans/slice-5-endpoints.md](.cursor/plans/slice-5-endpoints.md)
-- **Plan slice selesai terakhir:** [.cursor/plans/slice-4-indicators.md](.cursor/plans/slice-4-indicators.md)
-- **File Terakhir Diubah:** `backend/src/services/indicators.ts`, `backend/src/services/indicators.test.ts`, `backend/package.json`
+- **Plan file (slice aktif):** `belum ada` — setelah Plan Mode, simpan ke [.cursor/plans/slice-6-frontend.md](.cursor/plans/slice-6-frontend.md)
+- **Plan slice selesai terakhir:** [.cursor/plans/slice-5-endpoints.md](.cursor/plans/slice-5-endpoints.md)
+- **File Terakhir Diubah:** `backend/src/features/market/routes.ts`, `backend/src/features/indicators/routes.ts`, `backend/src/features/screening/routes.ts`, `backend/src/features/history/routes.ts`, `backend/src/index.ts`, `backend/src/utils/apiResponse.ts`
 - **Masalah Saat Ini   :** -
-- **Langkah Selanjutnya:** Plan Mode Slice 5 → save `slice-5-endpoints.md` → implement endpoint market/indicators/screening/history + zod validation + cache.
+- **Langkah Selanjutnya:** Plan Mode Slice 6 → save `slice-6-frontend.md` → integrasi chart dan fetch endpoint backend.
 - **Terakhir Diupdate  :** 2026-05-05
 
 ---

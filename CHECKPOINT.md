@@ -10,7 +10,7 @@
 | 2 | Database Schema & Koneksi       | .cursor/plans/slice-2-database.md  | Selesai        | 2026-05-05 |
 | 3 | Redis Cache & Cron Job          | .cursor/plans/slice-3-redis.md     | Selesai        | 2026-05-05 |
 | 4 | Kalkulasi Indikator Teknikal    | .cursor/plans/slice-4-indicators.md| Selesai        | 2026-05-05 |
-| 5 | API Endpoints Backend           | .cursor/plans/slice-5-endpoints.md | Belum Mulai    | -          |
+| 5 | API Endpoints Backend           | .cursor/plans/slice-5-endpoints.md | Selesai        | 2026-05-05 |
 | 6 | Frontend — Chart & Tampilan     | .cursor/plans/slice-6-frontend.md  | Belum Mulai    | -          |
 | 7 | Screening Feature               | .cursor/plans/slice-7-screening.md | Belum Mulai    | -          |
 | 8 | Auth & Role Management          | .cursor/plans/slice-8-auth.md      | Belum Mulai    | -          |
@@ -175,7 +175,7 @@ Sertakan unit test untuk semua fungsi.
 
 ## Slice 5 — API Endpoints Backend
 
-**Status:** ⏳ Belum Mulai
+**Status:** Selesai
 **Plan disimpan di:** `.cursor/plans/slice-5-endpoints.md`
 
 **Prompt untuk Plan Mode (Shift+Tab):**
@@ -196,12 +196,12 @@ Setiap endpoint wajib:
 
 **Checklist:**
 
-- [ ] Plan Mode dijalankan & plan tersimpan di .cursor/plans/
-- [ ] Semua 4 endpoint berjalan
-- [ ] Rate limiting aktif (test dengan banyak request)
-- [ ] Validasi input menolak input salah
-- [ ] Response format konsisten
-- [ ] Caching berfungsi (cek Redis setelah hit endpoint)
+- [x] Plan Mode dijalankan & plan tersimpan di .cursor/plans/
+- [x] Semua 4 endpoint berjalan
+- [x] Rate limiting aktif (100 req/menit per IP)
+- [x] Validasi input menolak input salah
+- [x] Response format konsisten
+- [x] Caching berfungsi (Redis TTL 60 detik per endpoint)
 
 ---
 
