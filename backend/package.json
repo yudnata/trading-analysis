@@ -6,7 +6,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "db:verify": "tsx src/scripts/verifyDb.ts"
+    "db:verify": "tsx src/scripts/verifyDb.ts",
+    "redis:verify": "tsx src/scripts/verifyRedisQueue.ts"
   },
   "dependencies": {
     "axios": "^1.7.9",

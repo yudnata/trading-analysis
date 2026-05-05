@@ -21,13 +21,13 @@ Urutan **@ mention** di prompt pembuka (Agents / Chat):
 
 ## State Terkini
 
-- **Slice Aktif        :** 3 — Redis Cache & Cron Job
+- **Slice Aktif        :** 4 — Kalkulasi Indikator Teknikal
 - **Status             :** ⏳ Belum Mulai
-- **Plan file (slice aktif):** `belum ada` — setelah Plan Mode, simpan ke [.cursor/plans/slice-3-redis.md](.cursor/plans/slice-3-redis.md)
-- **Plan slice selesai terakhir:** [.cursor/plans/slice-2-database.md](.cursor/plans/slice-2-database.md)
-- **File Terakhir Diubah:** `CHECKPOINT.md`, `CONTEXT.md`, `PROMPT_LOG.md`
+- **Plan file (slice aktif):** `belum ada` — setelah Plan Mode, simpan ke [.cursor/plans/slice-4-indicators.md](.cursor/plans/slice-4-indicators.md)
+- **Plan slice selesai terakhir:** [.cursor/plans/slice-3-redis.md](.cursor/plans/slice-3-redis.md)
+- **File Terakhir Diubah:** `backend/src/services/cache.ts`, `backend/src/services/queue.ts`, `backend/src/jobs/fetchMarketData.ts`, `backend/src/scripts/verifyRedisQueue.ts`, `backend/src/index.ts`, `backend/package.json`
 - **Masalah Saat Ini   :** -
-- **Langkah Selanjutnya:** Plan Mode Slice 3 → save `slice-3-redis.md` → eksekusi
+- **Langkah Selanjutnya:** Plan Mode Slice 4 → save `slice-4-indicators.md` → implement pure functions + unit test.
 - **Terakhir Diupdate  :** 2026-05-05
 
 ---

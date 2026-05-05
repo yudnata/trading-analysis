@@ -95,22 +95,22 @@ Untuk setiap slice ada DUA hal yang dicatat:
 
 ### [Slice 3] — PLAN MODE
 
-- Tanggal       : DD/MM/YYYY  HH:mm
-- Cara aktifkan : Shift+Tab di Agents Window
+- Tanggal       : 05/05/2026  15:52
+- Cara aktifkan : Agent mode dengan referensi CHECKPOINT + CONTEXT + prompt slice
 - Plan tersimpan: .cursor/plans/slice-3-redis.md
-- Isi plan      : [tulis ringkasan poin plan yang Cursor buat]
+- Isi plan      : Implement Redis singleton (`get/set/del/ping`), cron tiap 1 menit hanya enqueue job BullMQ, worker proses fetch Binance lalu simpan ke Redis TTL 60 detik + DB, tambah script verifikasi cache/queue.
 - Revisi plan   : -
 
 ### [Slice 3] — Prompt ke-1
 
-- Tanggal : DD/MM/YYYY  HH:mm
-- Tujuan  : [isi]
+- Tanggal : 05/05/2026  15:52
+- Tujuan  : Menyelesaikan Slice 3 end-to-end setelah Slice 2 selesai
 - Prompt  :
-  "[isi]"
-- Hasil   : [ ] Berhasil  [ ] Gagal  [ ] Perlu Revisi
-- File    : -
-- Kendala : -
-- Solusi  : -
+  "cek ... dan semua kode yang ada saya sudah selesai slice 2 lanjut dong"
+- Hasil   : [x] Berhasil  [ ] Gagal  [ ] Perlu Revisi
+- File    : .cursor/plans/slice-3-redis.md, backend/src/services/cache.ts, backend/src/services/queue.ts, backend/src/jobs/fetchMarketData.ts, backend/src/index.ts, backend/src/scripts/verifyRedisQueue.ts, backend/package.json, CHECKPOINT.md, CONTEXT.md
+- Kendala : Script verifikasi awal menggantung karena worker/connection belum ditutup.
+- Solusi  : Tambah cleanup `closeQueueResources()` + `closeCache()` sehingga `npm run redis:verify` selesai normal.
 
 ---
 

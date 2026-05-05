@@ -8,7 +8,7 @@
 |---|---------------------------------|------------------------------------|----------------|------------|
 | 1 | Setup Project & Struktur Folder | .cursor/plans/slice-1-setup.md     | Selesai        | 2026-05-03 |
 | 2 | Database Schema & Koneksi       | .cursor/plans/slice-2-database.md  | Selesai        | 2026-05-05 |
-| 3 | Redis Cache & Cron Job          | .cursor/plans/slice-3-redis.md     | Belum Mulai    | -          |
+| 3 | Redis Cache & Cron Job          | .cursor/plans/slice-3-redis.md     | Selesai        | 2026-05-05 |
 | 4 | Kalkulasi Indikator Teknikal    | .cursor/plans/slice-4-indicators.md| Belum Mulai    | -          |
 | 5 | API Endpoints Backend           | .cursor/plans/slice-5-endpoints.md | Belum Mulai    | -          |
 | 6 | Frontend — Chart & Tampilan     | .cursor/plans/slice-6-frontend.md  | Belum Mulai    | -          |
@@ -115,7 +115,7 @@ Buat utility function untuk query raw SQL.
 
 ## Slice 3 — Redis Cache & Cron Job
 
-**Status:** ⏳ Belum Mulai
+**Status:** Selesai
 **Plan disimpan di:** `.cursor/plans/slice-3-redis.md`
 
 **Prompt untuk Plan Mode (Shift+Tab):**
@@ -131,13 +131,13 @@ Yang dibutuhkan:
 
 **Checklist:**
 
-- [ ] Plan Mode dijalankan & plan tersimpan di .cursor/plans/
-- [ ] Redis service berjalan dengan get/set/del
-- [ ] Cron job berjalan tiap 1 menit
-- [ ] Data tersimpan di Redis TTL 60 detik
-- [ ] BullMQ queue aktif dan memproses job
-- [ ] Test cache hit dan cache miss berhasil
-- [ ] Tidak ada memory leak
+- [x] Plan Mode dijalankan & plan tersimpan di .cursor/plans/
+- [x] Redis service berjalan dengan get/set/del
+- [x] Cron job berjalan tiap 1 menit
+- [x] Data tersimpan di Redis TTL 60 detik
+- [x] BullMQ queue aktif dan memproses job
+- [x] Test cache hit dan cache miss berhasil
+- [x] Tidak ada memory leak
 
 ---
 
