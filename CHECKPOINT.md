@@ -97,7 +97,7 @@ Buat .env.example dengan semua variable yang dibutuhkan.
 Buatkan plan untuk setup database PostgreSQL aplikasi ini menggunakan driver 'pg'.
 Buat script SQL untuk tabel: users, watchlists, price_history, audit_logs.
 Simpan file .sql di backend/db/ (satu folder dengan layanan Express; migrasi/schema di sini).
-Gunakan hypertable untuk price_history (TimescaleDB).
+Gunakan hypertable untuk price_history (TimescaleDB). Pastikan tabel price_history menggunakan composite PRIMARY KEY (symbol, time) karena wajib untuk partition key di hypertable.
 Setup connection pool di backend/src/config/db.ts.
 Buat utility function untuk query raw SQL.
 ```
@@ -124,8 +124,8 @@ Buat utility function untuk query raw SQL.
 Buatkan plan untuk setup Redis cache dan cron job data market.
 Yang dibutuhkan:
 - Redis service (ioredis): fungsi get, set dengan TTL, delete
-- Cron job dengan node-cron: fetch Binance API tiap 1 menit, simpan ke Redis TTL 60 detik
-- BullMQ queue untuk proses data agar tidak crash saat load tinggi
+- Cron job dengan node-cron: hanya bertugas sebagai trigger/scheduler untuk push job ke BullMQ queue tiap 1 menit
+- BullMQ queue & worker: worker bertugas memproses antrian (fetch Binance API, simpan hasil ke Redis TTL 60 detik, dan simpan ke DB)
 - Jangan pernah fetch API langsung dari request user
 ```
 
@@ -184,7 +184,7 @@ Sertakan unit test untuk semua fungsi.
 Buatkan plan untuk semua REST endpoint Express.js berikut:
 - GET /api/market/:symbol → harga terkini dari Redis cache
 - GET /api/indicators/:symbol → MA20, MA30, Bollinger, Stochastic, signal
-- GET /api/screening → semua aset dengan sinyal BUY/SELL/HOLD
+- GET /api/screening → semua aset dengan sinyal BUY/SELL/HOLD (wajib ada pagination ?page= & ?limit= di backend)
 - GET /api/history/:symbol?period=1D → data historis dari DB
 
 Setiap endpoint wajib:
@@ -213,9 +213,9 @@ Setiap endpoint wajib:
 **Prompt untuk Plan Mode (Shift+Tab):**
 
 ```text
-Buatkan plan untuk komponen chart trading di Next.js menggunakan recharts.
+Buatkan plan untuk komponen chart trading di Next.js menggunakan lightweight-charts (TradingView).
 Komponen yang dibutuhkan:
-1. TradingChart — candlestick OHLCV + overlay MA20 (biru) + MA30 (oranye) + Bollinger Bands
+1. TradingChart — candlestick OHLCV + overlay MA20 (biru) + MA30 (oranye) + Bollinger Bands menggunakan lightweight-charts
 2. StochasticChart — chart stochastic terpisah, garis overbought 80 dan oversold 20
 3. TimeframeSelector — tombol 1H | 4H | 1D | 1W
 4. Halaman /dashboard yang menggabungkan semua komponen
@@ -281,9 +281,11 @@ Fitur yang dibutuhkan:
 ```text
 Buatkan plan untuk sistem autentikasi dan role management.
 Yang dibutuhkan:
-- NextAuth dengan credential provider (email + password)
+- NextAuth di Next.js dengan credential provider (email + password)
+- Express.js memverifikasi token menggunakan jsonwebtoken (JWT) di middleware
 - Role: ADMIN (akses semua) dan TRADER (dashboard + screening saja)
-- Middleware Next.js untuk protect routes berdasarkan role
+- Middleware Next.js untuk protect routes frontend berdasarkan role
+- Middleware Express.js untuk protect API endpoint
 - Halaman login dan register
 - Halaman /admin/users (admin only) — list semua user
 - Halaman /admin/audit-log (admin only) — riwayat aktivitas
@@ -300,3 +302,4 @@ Yang dibutuhkan:
 - [ ] Audit log tercatat setiap aksi
 - [ ] Halaman user management berfungsi
 - [ ] Halaman audit log tampil data
+- [ ] Frontend mengirim Authorization: Bearer token ke setiap request Express

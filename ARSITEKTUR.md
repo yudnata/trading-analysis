@@ -118,14 +118,14 @@ CREATE TABLE watchlists (
 
 ```sql
 CREATE TABLE price_history (
-  id TEXT,
   symbol TEXT NOT NULL,
   open DOUBLE PRECISION,
   high DOUBLE PRECISION,
   low DOUBLE PRECISION,
   close DOUBLE PRECISION,
   volume DOUBLE PRECISION,
-  time TIMESTAMP NOT NULL
+  time TIMESTAMP NOT NULL,
+  PRIMARY KEY (symbol, time)
 );
 SELECT create_hypertable('price_history', 'time');
 ```
@@ -234,6 +234,7 @@ POLYGON_API_KEY="your_key_here"
 # Auth
 NEXTAUTH_SECRET="random_secret_string"
 NEXTAUTH_URL="http://localhost:3000"
+JWT_SECRET="express_jwt_secret_string"
 
 # App
 NEXT_PUBLIC_API_URL="http://localhost:4000"
