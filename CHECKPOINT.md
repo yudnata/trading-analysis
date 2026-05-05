@@ -9,7 +9,7 @@
 | 1 | Setup Project & Struktur Folder | .cursor/plans/slice-1-setup.md     | Selesai        | 2026-05-03 |
 | 2 | Database Schema & Koneksi       | .cursor/plans/slice-2-database.md  | Selesai        | 2026-05-05 |
 | 3 | Redis Cache & Cron Job          | .cursor/plans/slice-3-redis.md     | Selesai        | 2026-05-05 |
-| 4 | Kalkulasi Indikator Teknikal    | .cursor/plans/slice-4-indicators.md| Belum Mulai    | -          |
+| 4 | Kalkulasi Indikator Teknikal    | .cursor/plans/slice-4-indicators.md| Selesai        | 2026-05-05 |
 | 5 | API Endpoints Backend           | .cursor/plans/slice-5-endpoints.md | Belum Mulai    | -          |
 | 6 | Frontend — Chart & Tampilan     | .cursor/plans/slice-6-frontend.md  | Belum Mulai    | -          |
 | 7 | Screening Feature               | .cursor/plans/slice-7-screening.md | Belum Mulai    | -          |
@@ -143,7 +143,7 @@ Yang dibutuhkan:
 
 ## Slice 4 — Kalkulasi Indikator Teknikal
 
-**Status:** ⏳ Belum Mulai
+**Status:** Selesai
 **Plan disimpan di:** `.cursor/plans/slice-4-indicators.md`
 
 **Prompt untuk Plan Mode (Shift+Tab):**
@@ -164,12 +164,12 @@ Sertakan unit test untuk semua fungsi.
 
 **Checklist:**
 
-- [ ] Plan Mode dijalankan & plan tersimpan di .cursor/plans/
-- [ ] calculateMA() akurat
-- [ ] calculateBollingerBands() akurat
-- [ ] calculateStochastic() akurat
-- [ ] generateSignal() logika benar
-- [ ] Semua unit test lulus
+- [x] Plan Mode dijalankan & plan tersimpan di .cursor/plans/
+- [x] calculateMA() akurat
+- [x] calculateBollingerBands() akurat
+- [x] calculateStochastic() akurat
+- [x] generateSignal() logika benar
+- [x] Semua unit test lulus
 
 ---
 

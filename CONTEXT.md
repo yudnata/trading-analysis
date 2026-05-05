@@ -21,13 +21,13 @@ Urutan **@ mention** di prompt pembuka (Agents / Chat):
 
 ## State Terkini
 
-- **Slice Aktif        :** 4 — Kalkulasi Indikator Teknikal
+- **Slice Aktif        :** 5 — API Endpoints Backend
 - **Status             :** ⏳ Belum Mulai
-- **Plan file (slice aktif):** `belum ada` — setelah Plan Mode, simpan ke [.cursor/plans/slice-4-indicators.md](.cursor/plans/slice-4-indicators.md)
-- **Plan slice selesai terakhir:** [.cursor/plans/slice-3-redis.md](.cursor/plans/slice-3-redis.md)
-- **File Terakhir Diubah:** `backend/src/services/cache.ts`, `backend/src/services/queue.ts`, `backend/src/jobs/fetchMarketData.ts`, `backend/src/scripts/verifyRedisQueue.ts`, `backend/src/index.ts`, `backend/package.json`
+- **Plan file (slice aktif):** `belum ada` — setelah Plan Mode, simpan ke [.cursor/plans/slice-5-endpoints.md](.cursor/plans/slice-5-endpoints.md)
+- **Plan slice selesai terakhir:** [.cursor/plans/slice-4-indicators.md](.cursor/plans/slice-4-indicators.md)
+- **File Terakhir Diubah:** `backend/src/services/indicators.ts`, `backend/src/services/indicators.test.ts`, `backend/package.json`
 - **Masalah Saat Ini   :** -
-- **Langkah Selanjutnya:** Plan Mode Slice 4 → save `slice-4-indicators.md` → implement pure functions + unit test.
+- **Langkah Selanjutnya:** Plan Mode Slice 5 → save `slice-5-endpoints.md` → implement endpoint market/indicators/screening/history + zod validation + cache.
 - **Terakhir Diupdate  :** 2026-05-05
 
 ---

@@ -118,22 +118,22 @@ Untuk setiap slice ada DUA hal yang dicatat:
 
 ### [Slice 4] — PLAN MODE
 
-- Tanggal       : DD/MM/YYYY  HH:mm
-- Cara aktifkan : Shift+Tab di Agents Window
+- Tanggal       : 05/05/2026  16:02
+- Cara aktifkan : Agent mode lanjut otomatis dari slice sebelumnya
 - Plan tersimpan: .cursor/plans/slice-4-indicators.md
-- Isi plan      : [tulis ringkasan poin plan yang Cursor buat]
+- Isi plan      : Implement pure function `calculateMA`, `calculateBollingerBands`, `calculateStochastic`, `generateSignal` dan siapkan unit test otomatis via Vitest.
 - Revisi plan   : -
 
 ### [Slice 4] — Prompt ke-1
 
-- Tanggal : DD/MM/YYYY  HH:mm
-- Tujuan  : [isi]
+- Tanggal : 05/05/2026  16:02
+- Tujuan  : Menyelesaikan Slice 4 (indikator + unit test) dan validasi hasil
 - Prompt  :
-  "[isi]"
-- Hasil   : [ ] Berhasil  [ ] Gagal  [ ] Perlu Revisi
-- File    : -
-- Kendala : -
-- Solusi  : -
+  "oke kalau dirasa sudah lanjut ke next slice"
+- Hasil   : [x] Berhasil  [ ] Gagal  [ ] Perlu Revisi
+- File    : .cursor/plans/slice-4-indicators.md, backend/src/services/indicators.ts, backend/src/services/indicators.test.ts, backend/package.json, CHECKPOINT.md, CONTEXT.md
+- Kendala : Belum ada test runner di backend.
+- Solusi  : Install `vitest`, tambah script `npm run test`, lalu jalankan test hingga lulus.
 
 ---
 
