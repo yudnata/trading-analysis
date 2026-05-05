@@ -61,22 +61,33 @@ Untuk setiap slice ada DUA hal yang dicatat:
 
 ### [Slice 2] — PLAN MODE
 
-- Tanggal       : DD/MM/YYYY  HH:mm
-- Cara aktifkan : Shift+Tab di Agents Window
+- Tanggal       : 05/05/2026  14:42
+- Cara aktifkan : Plan mode + plan tersimpan ke workspace
 - Plan tersimpan: .cursor/plans/slice-2-database.md
-- Isi plan      : [tulis ringkasan poin plan yang Cursor buat]
+- Isi plan      : Buat SQL schema 4 tabel + Timescale hypertable, setup `pg` pool di `backend/src/config/db.ts`, helper raw query, script verifikasi DB, lalu sinkronisasi CHECKPOINT/CONTEXT/PROMPT_LOG.
 - Revisi plan   : -
 
 ### [Slice 2] — Prompt ke-1
 
-- Tanggal : DD/MM/YYYY  HH:mm
-- Tujuan  : [isi]
+- Tanggal : 05/05/2026  14:42
+- Tujuan  : Eksekusi penuh Slice 2 sesuai plan tersimpan
 - Prompt  :
-  "[isi]"
-- Hasil   : [ ] Berhasil  [ ] Gagal  [ ] Perlu Revisi
-- File    : -
-- Kendala : -
-- Solusi  : -
+  "Plan Slice 2 — Database Schema & Koneksi. Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself."
+- Hasil   : [x] Berhasil  [ ] Gagal  [ ] Perlu Revisi
+- File    : .cursor/plans/slice-2-database.md, backend/db/init.sql, backend/src/config/db.ts, backend/src/utils/db.ts, backend/src/scripts/verifyDb.ts, backend/package.json, CHECKPOINT.md, CONTEXT.md
+- Kendala : `DATABASE_URL` belum diset, sehingga verifikasi runtime DB belum bisa dieksekusi penuh di environment ini.
+- Solusi  : Tambah script `npm run db:verify`; setelah env DB aktif, jalankan script untuk validasi tabel/hypertable/query.
+
+### [Slice 2] — Prompt ke-2
+
+- Tanggal : 05/05/2026  15:05
+- Tujuan  : Mengonversi setup ke Docker untuk dukungan TimescaleDB lokal
+- Prompt  :
+  "kalau saya setup docker otomatis banyak berubah dong arsitektur checkpoint context prompt lognya dan cursor plansnya? ... docker compose yml itu gak ambil dari env aja?"
+- Hasil   : [x] Berhasil  [ ] Gagal  [ ] Perlu Revisi
+- File    : docker-compose.yml, .env, .env.example, ARSITEKTUR.md, CHECKPOINT.md, CONTEXT.md
+- Kendala : Neon tidak mendukung TimescaleDB.
+- Solusi  : Membuat `docker-compose.yml` untuk PostgreSQL/TimescaleDB + Redis lokal yang terhubung dengan kredensial `.env`. Memverifikasi ulang dan menandai Slice 2 Selesai.
 
 ---
 

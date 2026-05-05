@@ -21,14 +21,14 @@ Urutan **@ mention** di prompt pembuka (Agents / Chat):
 
 ## State Terkini
 
-- **Slice Aktif        :** 2 — Database Schema & Koneksi
+- **Slice Aktif        :** 3 — Redis Cache & Cron Job
 - **Status             :** ⏳ Belum Mulai
-- **Plan file (slice aktif):** `belum ada` — setelah Plan Mode, simpan ke [.cursor/plans/slice-2-database.md](.cursor/plans/slice-2-database.md) lalu ganti baris ini dengan path tersebut
-- **Plan slice selesai terakhir:** [.cursor/plans/slice-1-setup.md](.cursor/plans/slice-1-setup.md) (referensi saja, jangan jadi fokus eksekusi)
-- **File Terakhir Diubah:** backend/db/, .cursor/rules
+- **Plan file (slice aktif):** `belum ada` — setelah Plan Mode, simpan ke [.cursor/plans/slice-3-redis.md](.cursor/plans/slice-3-redis.md)
+- **Plan slice selesai terakhir:** [.cursor/plans/slice-2-database.md](.cursor/plans/slice-2-database.md)
+- **File Terakhir Diubah:** `CHECKPOINT.md`, `CONTEXT.md`, `PROMPT_LOG.md`
 - **Masalah Saat Ini   :** -
-- **Langkah Selanjutnya:** Plan Mode Slice 2 → save `slice-2-database.md` → samakan `todos` di frontmatter dengan checklist CHECKPOINT → eksekusi → update tabel CHECKPOINT + CONTEXT
-- **Terakhir Diupdate  :** 2026-05-03
+- **Langkah Selanjutnya:** Plan Mode Slice 3 → save `slice-3-redis.md` → eksekusi
+- **Terakhir Diupdate  :** 2026-05-05
 
 ---
 

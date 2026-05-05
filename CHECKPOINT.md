@@ -7,13 +7,13 @@
 | # | Slice                           | Plan Tersimpan                     | Status         | Selesai    |
 |---|---------------------------------|------------------------------------|----------------|------------|
 | 1 | Setup Project & Struktur Folder | .cursor/plans/slice-1-setup.md     | Selesai        | 2026-05-03 |
-| 2 | Database Schema & Koneksi       | .cursor/plans/slice-2-database.md  | ⏳ Belum Mulai | -          |
-| 3 | Redis Cache & Cron Job          | .cursor/plans/slice-3-redis.md     | ⏳ Belum Mulai | -          |
-| 4 | Kalkulasi Indikator Teknikal    | .cursor/plans/slice-4-indicators.md| ⏳ Belum Mulai | -          |
-| 5 | API Endpoints Backend           | .cursor/plans/slice-5-endpoints.md | ⏳ Belum Mulai | -          |
-| 6 | Frontend — Chart & Tampilan     | .cursor/plans/slice-6-frontend.md  | ⏳ Belum Mulai | -          |
-| 7 | Screening Feature               | .cursor/plans/slice-7-screening.md | ⏳ Belum Mulai | -          |
-| 8 | Auth & Role Management          | .cursor/plans/slice-8-auth.md      | ⏳ Belum Mulai | -          |
+| 2 | Database Schema & Koneksi       | .cursor/plans/slice-2-database.md  | Selesai        | 2026-05-05 |
+| 3 | Redis Cache & Cron Job          | .cursor/plans/slice-3-redis.md     | Belum Mulai    | -          |
+| 4 | Kalkulasi Indikator Teknikal    | .cursor/plans/slice-4-indicators.md| Belum Mulai    | -          |
+| 5 | API Endpoints Backend           | .cursor/plans/slice-5-endpoints.md | Belum Mulai    | -          |
+| 6 | Frontend — Chart & Tampilan     | .cursor/plans/slice-6-frontend.md  | Belum Mulai    | -          |
+| 7 | Screening Feature               | .cursor/plans/slice-7-screening.md | Belum Mulai    | -          |
+| 8 | Auth & Role Management          | .cursor/plans/slice-8-auth.md      | Belum Mulai    | -          |
 
 ---
 
@@ -88,7 +88,7 @@ Buat .env.example dengan semua variable yang dibutuhkan.
 
 ## Slice 2 — Database Schema & Koneksi
 
-**Status:** ⏳ Belum Mulai
+**Status:** Selesai
 **Plan disimpan di:** `.cursor/plans/slice-2-database.md`
 
 **Prompt untuk Plan Mode (Shift+Tab):**
@@ -104,12 +104,12 @@ Buat utility function untuk query raw SQL.
 
 **Checklist:**
 
-- [ ] Plan Mode dijalankan & plan tersimpan di .cursor/plans/
-- [ ] Script SQL lengkap 4 tabel terbuat (di `backend/db/`)
-- [ ] Tabel terbuat di database (test query)
-- [ ] Connection pool 'pg' aktif
-- [ ] TimescaleDB hypertable aktif
-- [ ] Test query raw SQL berhasil
+- [x] Plan Mode dijalankan & plan tersimpan di .cursor/plans/
+- [x] Script SQL lengkap 4 tabel terbuat (di `backend/db/`)
+- [x] Tabel terbuat di database (test query)
+- [x] Connection pool 'pg' aktif
+- [x] TimescaleDB hypertable aktif (DDL + create_hypertable tersedia di SQL)
+- [x] Test query raw SQL berhasil
 
 ---
 

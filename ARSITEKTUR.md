@@ -17,6 +17,7 @@
 | ORM / Driver   | pg (node-postgres)            | Raw SQL, kontrol penuh query       |
 | API Eksternal  | Binance API / Polygon.io      | Data market real-time              |
 | AI Dev Tool    | Cursor 3 (Plan Mode + Agents) | AI-assisted development            |
+| Local Hosting  | Docker & Docker Compose       | Menjalankan DB & Redis lokal       |
 
 ---
 
