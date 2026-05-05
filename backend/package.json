@@ -7,6 +7,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "db:verify": "tsx src/scripts/verifyDb.ts",
+    "db:backfill": "tsx src/scripts/backfill.ts",
     "redis:verify": "tsx src/scripts/verifyRedisQueue.ts",
     "test": "vitest run --config vitest.config.ts"
   },
@@ -20,6 +21,7 @@
     "ioredis": "^5.4.2",
     "node-cron": "^3.0.3",
     "pg": "^8.13.1",
+    "socket.io": "^4.8.3",
     "zod": "^3.24.1"
   },
   "devDependencies": {

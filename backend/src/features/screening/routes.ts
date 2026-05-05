@@ -24,6 +24,7 @@ screeningRouter.get('/health', (_req, res) => {
 const querySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
+  asset_type: z.enum(['CRYPTO', 'STOCK', 'ALL']).default('ALL'),
 });
 
 screeningRouter.get('/', async (req, res) => {
@@ -32,19 +33,26 @@ screeningRouter.get('/', async (req, res) => {
     return sendError(res, 'invalid_pagination', 400);
   }
 
-  const { page, limit } = parsed.data;
-  const cacheKey = `endpoint:screening:page:${page}:limit:${limit}`;
+  const { page, limit, asset_type } = parsed.data;
+  const cacheKey = `endpoint:screening:page:${page}:limit:${limit}:type:${asset_type}`;
   const cached = await getCache(cacheKey);
   if (cached) {
     return sendSuccess(res, cached);
   }
 
   try {
+    // Ambil symbol berdasarkan asset_type dari tabel assets (join).
+    // Fallback ke DISTINCT price_history jika asset belum ada di tabel assets.
+    const assetTypeFilter = asset_type === 'ALL' ? '' : `AND a.asset_type = '${asset_type}'`;
+
     const symbolsResult = await query<{ symbol: string }>(
       `
-        SELECT DISTINCT symbol
-        FROM price_history
-        ORDER BY symbol ASC
+        SELECT DISTINCT ph.symbol
+        FROM price_history ph
+        LEFT JOIN assets a ON a.symbol = ph.symbol
+        WHERE (a.is_active IS NULL OR a.is_active = TRUE)
+        ${assetTypeFilter}
+        ORDER BY ph.symbol ASC
         OFFSET $1
         LIMIT $2;
       `,
@@ -96,6 +104,7 @@ screeningRouter.get('/', async (req, res) => {
     const payload = {
       page,
       limit,
+      asset_type,
       count: items.length,
       items,
     };

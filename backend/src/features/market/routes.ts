@@ -31,12 +31,22 @@ marketRouter.get('/:symbol', async (req, res) => {
   }
 
   const { symbol } = parsed.data;
-  const cacheKey = `endpoint:market:${symbol}`;
-  const cached = await getCache(cacheKey);
-  if (cached) {
-    return sendSuccess(res, cached);
+
+  // 1. Redis-first: cek cache market:<symbol> yang diisi worker (TTL 60 detik).
+  //    Ini data terbaru yang dimasukkan worker cron — lebih fresh dari endpoint cache.
+  const workerCache = await getCache(`market:${symbol}`);
+  if (workerCache) {
+    return sendSuccess(res, workerCache);
   }
 
+  // 2. Fallback ke endpoint cache (agar tidak spam DB saat Redis miss tapi data ada di DB)
+  const endpointCacheKey = `endpoint:market:${symbol}`;
+  const endpointCached = await getCache(endpointCacheKey);
+  if (endpointCached) {
+    return sendSuccess(res, endpointCached);
+  }
+
+  // 3. Last resort: query DB
   try {
     const result = await query<{
       symbol: string;
@@ -62,7 +72,8 @@ marketRouter.get('/:symbol', async (req, res) => {
       return sendError(res, 'market_data_not_found', 404);
     }
 
-    await setCache(cacheKey, latest, 60);
+    // Simpan ke endpoint cache agar request berikutnya tidak hit DB
+    await setCache(endpointCacheKey, latest, 60);
     return sendSuccess(res, latest);
   } catch {
     return sendError(res, 'internal_error');

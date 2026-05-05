@@ -4,16 +4,16 @@
 
 ## Ringkasan Status
 
-| # | Slice                           | Plan Tersimpan                     | Status         | Selesai    |
-|---|---------------------------------|------------------------------------|----------------|------------|
-| 1 | Setup Project & Struktur Folder | .cursor/plans/slice-1-setup.md     | Selesai        | 2026-05-03 |
-| 2 | Database Schema & Koneksi       | .cursor/plans/slice-2-database.md  | Selesai        | 2026-05-05 |
-| 3 | Redis Cache & Cron Job          | .cursor/plans/slice-3-redis.md     | Selesai        | 2026-05-05 |
-| 4 | Kalkulasi Indikator Teknikal    | .cursor/plans/slice-4-indicators.md| Selesai        | 2026-05-05 |
-| 5 | API Endpoints Backend           | .cursor/plans/slice-5-endpoints.md | Selesai        | 2026-05-05 |
-| 6 | Frontend — Chart & Tampilan     | .cursor/plans/slice-6-frontend.md  | Belum Mulai    | -          |
-| 7 | Screening Feature               | .cursor/plans/slice-7-screening.md | Belum Mulai    | -          |
-| 8 | Auth & Role Management          | .cursor/plans/slice-8-auth.md      | Belum Mulai    | -          |
+| #   | Slice                                  | Plan Tersimpan                       | Status              | Selesai    |
+| --- | -------------------------------------- | ------------------------------------ | ------------------- | ---------- |
+| 1   | Setup Project & Struktur Folder        | .cursor/plans/slice-1-setup.md       | Selesai             | 2026-05-03 |
+| 2   | Database Schema & Koneksi              | .cursor/plans/slice-2-database.md    | Selesai (+ 2.1)     | 2026-05-05 |
+| 3   | Redis Cache & Cron Job + Provider Layer| .cursor/plans/slice-3-redis.md       | Selesai (+ 3.1)     | 2026-05-05 |
+| 4   | Kalkulasi Indikator Teknikal           | .cursor/plans/slice-4-indicators.md  | Selesai             | 2026-05-05 |
+| 5   | API Endpoints Backend                  | .cursor/plans/slice-5-endpoints.md   | Selesai             | 2026-05-05 |
+| 6   | Frontend — Chart & Tampilan            | .cursor/plans/slice-6-frontend.md    | Selesai             | 2026-05-05 |
+| 7   | Screening Feature                      | .cursor/plans/slice-7-screening.md   | Belum Mulai         | -          |
+| 8   | Auth & Role Management                 | .cursor/plans/slice-8-auth.md        | Belum Mulai         | -          |
 
 ---
 
@@ -49,7 +49,7 @@ File berikut harus **selaras** untuk slice yang sedang dikerjakan:
 
 | Sumber | Isi yang harus sama |
 | -------- | --------------------- |
-| [CONTEXT.md](CONTEXT.md) | Baris **Plan file (slice aktif)** = file `.cursor/plans/slice-X-....md` untuk **slice yang sama** dengan baris **Slice Aktif** (bukan plan slice lama). |
+| [CONTEXT.md](CONTEXT.md) | Baris **Plan file (slice aktif)** = file `.cursor/plans/slice-X-....md` untuk **slice yang sama** dengan baris **Slice Aktif** (bukan plan slice lama yang sudah selesai). |
 | [.cursor/plans/slice-X-....md](.cursor/plans/TEMPLATE_SLICE.md) | Frontmatter `todos:` disalin dari **Checklist** slice itu di file ini (CHECKPOINT). Update `status` saat jalan. |
 | [PROMPT_LOG.md](PROMPT_LOG.md) | Setelah plan disimpan, isi blok **PLAN MODE** untuk slice tersebut. |
 
@@ -88,7 +88,7 @@ Buat .env.example dengan semua variable yang dibutuhkan.
 
 ## Slice 2 — Database Schema & Koneksi
 
-**Status:** Selesai
+**Status:** Selesai (termasuk Slice 2.1 — tabel assets)
 **Plan disimpan di:** `.cursor/plans/slice-2-database.md`
 
 **Prompt untuk Plan Mode (Shift+Tab):**
@@ -110,12 +110,14 @@ Buat utility function untuk query raw SQL.
 - [x] Connection pool 'pg' aktif
 - [x] TimescaleDB hypertable aktif (DDL + create_hypertable tersedia di SQL)
 - [x] Test query raw SQL berhasil
+- [x] **[2.1]** Tabel `assets` dibuat (symbol, asset_type CRYPTO|STOCK, provider BINANCE|POLYGON, is_active)
+- [x] **[2.1]** Seed data awal: 4 crypto (Binance) + 4 saham (Polygon)
 
 ---
 
-## Slice 3 — Redis Cache & Cron Job
+## Slice 3 — Redis Cache & Cron Job + Provider Layer
 
-**Status:** Selesai
+**Status:** Selesai (termasuk Slice 3.1 — provider layer)
 **Plan disimpan di:** `.cursor/plans/slice-3-redis.md`
 
 **Prompt untuk Plan Mode (Shift+Tab):**
@@ -138,6 +140,13 @@ Yang dibutuhkan:
 - [x] BullMQ queue aktif dan memproses job
 - [x] Test cache hit dan cache miss berhasil
 - [x] Tidak ada memory leak
+- [x] **[3.1]** `providers/binance.ts` — fetch ticker Binance (crypto, tanpa auth)
+- [x] **[3.1]** `providers/polygon.ts` — fetch snapshot Polygon.io (saham, butuh API key)
+- [x] **[3.1]** `services/marketDataService.ts` — router memilih provider berdasarkan kolom `provider`
+- [x] Cron enqueue multi-symbol dari tabel `assets` (bukan hardcode BTCUSDT)
+- [x] JobId dedupe per `symbol:1m` (BullMQ tidak duplikasi job pending)
+- [x] Worker retry 3x dengan exponential backoff (2s, 4s, 8s)
+- [x] **[Backfill]** Script `db:backfill` untuk mengisi data historis awal (Binance 500m, Polygon 1d)
 
 ---
 
@@ -175,7 +184,7 @@ Sertakan unit test untuk semua fungsi.
 
 ## Slice 5 — API Endpoints Backend
 
-**Status:** Selesai
+**Status:** Selesai (direvisi — market Redis-first + screening filter asset_type)
 **Plan disimpan di:** `.cursor/plans/slice-5-endpoints.md`
 
 **Prompt untuk Plan Mode (Shift+Tab):**
@@ -202,12 +211,16 @@ Setiap endpoint wajib:
 - [x] Validasi input menolak input salah
 - [x] Response format konsisten
 - [x] Caching berfungsi (Redis TTL 60 detik per endpoint)
+- [x] **Revisi:** `/api/market/:symbol` Redis-first (worker cache → endpoint cache → DB)
+- [x] **Revisi:** `/api/screening?asset_type=CRYPTO|STOCK|ALL` — filter by asset type
+- [x] **Revisi:** `/api/history/:symbol` tambah `periodToLimit` — LIMIT berbeda per timeframe (1H=60, 4H=240, 1D/1W=1440)
+- [x] **Tambahan:** `GET /api/assets` — endpoint baru daftar symbol aktif (cache 5 menit)
 
 ---
 
 ## Slice 6 — Frontend Chart & Tampilan
 
-**Status:** ⏳ Belum Mulai
+**Status:** ✅ Selesai
 **Plan disimpan di:** `.cursor/plans/slice-6-frontend.md`
 
 **Prompt untuk Plan Mode (Shift+Tab):**
@@ -228,14 +241,20 @@ Setiap komponen wajib ada:
 
 **Checklist:**
 
-- [ ] Plan Mode dijalankan & plan tersimpan di .cursor/plans/
-- [ ] TradingChart tampil dengan data real
-- [ ] Overlay MA20 dan MA30 akurat posisinya
-- [ ] Bollinger Bands tampil
-- [ ] StochasticChart tampil dengan garis referensi
-- [ ] TimeframeSelector berfungsi ubah data
-- [ ] Loading skeleton muncul saat fetch
-- [ ] Responsive di mobile
+- [x] Plan Mode dijalankan & plan tersimpan di .cursor/plans/
+- [x] TradingChart tampil dengan data real (BTCUSDT candlestick)
+- [x] Overlay MA5, MA20, dan MA50 (sesuai standar perkuliahan)
+- [x] Bollinger Bands tampil (dihitung lokal dari history)
+- [x] StochasticChart tampil dengan garis referensi (hitung client-side)
+- [x] TimeframeSelector berfungsi ubah data (1H/4H/1D/1W)
+- [x] **[Update]** Auto-Aggregation (`time_bucket`) agar candle proporsional di timeframe besar
+- [x] **[Update]** Real-time Update via Socket.io (instan tanpa delay)
+- [x] **[Update]** Timezone Localization (`Intl.DateTimeFormat` di browser rendering, Backend kirim epoch ms murni UTC)
+- [x] **[Update]** Premium UI (Centered layout, Glassmorphism, Large Candles)
+- [x] Symbol selector dropdown (Crypto/Saham US grouping)
+- [x] **[Fix]** Smart Startup Backfill (Auto-fetch 7 hari history dari API jika `< 10000` rows di DB)
+- [x] **[Fix]** History Sort (Backend menggunakan `ORDER BY DESC LIMIT` lalu di `reverse()` untuk bypass timezone mismatch PostgreSQL `NOW()`)
+- [x] Responsive di mobile
 
 ---
 
@@ -252,6 +271,7 @@ Fitur yang dibutuhkan:
 - Tabel dengan kolom: Symbol | Price | MA20 | MA30 | Bollinger | Stochastic | Signal
 - Badge signal berwarna: BUY=hijau, SELL=merah, HOLD=abu-abu
 - Filter berdasarkan signal (BUY/SELL/HOLD/ALL)
+- Filter berdasarkan asset_type (CRYPTO/STOCK/ALL) — sesuai endpoint /api/screening?asset_type=
 - Sort per kolom (klik header tabel)
 - Export ke CSV (download langsung)
 - Auto-refresh setiap 60 detik dengan countdown timer
@@ -264,6 +284,7 @@ Fitur yang dibutuhkan:
 - [ ] Tabel tampil dengan data real dari API
 - [ ] Badge signal warna sesuai
 - [ ] Filter signal berfungsi
+- [ ] Filter asset_type berfungsi (CRYPTO/STOCK/ALL)
 - [ ] Sort per kolom berfungsi
 - [ ] Export CSV berhasil didownload
 - [ ] Auto-refresh berjalan tiap 60 detik

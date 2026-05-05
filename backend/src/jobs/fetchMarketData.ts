@@ -1,39 +1,22 @@
-import axios from "axios";
-import { query } from "../utils/db";
-import { setCache } from "../services/cache";
+import { query } from '../utils/db';
+import { setCache, delCache } from '../services/cache';
+import { fetchMarketData, type Provider } from '../services/marketDataService';
+import { getIO } from '../services/socketManager';
 
-type MarketTicker = {
+export interface MarketFetchJobData {
   symbol: string;
-  openPrice: string;
-  highPrice: string;
-  lowPrice: string;
-  lastPrice: string;
-  volume: string;
-  closeTime: number;
-};
+  provider: Provider;
+}
 
-export type MarketFetchJobData = {
-  symbol?: string;
-};
+export async function fetchMarketDataJob(data: MarketFetchJobData): Promise<void> {
+  const { symbol, provider } = data;
 
-export async function fetchMarketDataJob(data?: MarketFetchJobData): Promise<void> {
-  const symbol = data?.symbol ?? "BTCUSDT";
-  const { data: ticker } = await axios.get<MarketTicker>(
-    `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`,
-  );
+  const payload = await fetchMarketData(symbol, provider);
 
-  const payload = {
-    symbol: ticker.symbol,
-    open: Number(ticker.openPrice),
-    high: Number(ticker.highPrice),
-    low: Number(ticker.lowPrice),
-    close: Number(ticker.lastPrice),
-    volume: Number(ticker.volume),
-    time: new Date(ticker.closeTime),
-  };
-
+  // Simpan ke Redis TTL 60 detik
   await setCache(`market:${symbol}`, payload, 60);
 
+  // Insert ke TimescaleDB
   await query(
     `
       INSERT INTO price_history (symbol, open, high, low, close, volume, time)
@@ -50,4 +33,30 @@ export async function fetchMarketDataJob(data?: MarketFetchJobData): Promise<voi
       payload.time,
     ],
   );
+
+  // Invalidate history cache untuk semua period agar frontend mendapat data fresh
+  const periods = ['1H', '4H', '1D', '1W'];
+  await Promise.allSettled(periods.map((p) => delCache(`endpoint:history:${symbol}:period:${p}`)));
+
+  // Kirim sinyal real-time via Socket.io — include candle data agar frontend
+  // bisa langsung update() tanpa harus re-fetch seluruh history
+  try {
+    const io = getIO();
+    io.emit('market-update', {
+      symbol: payload.symbol,
+      candle: {
+        time: payload.time,
+        open: payload.open,
+        high: payload.high,
+        low: payload.low,
+        close: payload.close,
+        volume: payload.volume,
+      },
+    });
+  } catch (err) {
+    // Socket belum ready saat startup — tidak fatal
+    console.warn('[worker] Socket.io not ready, skipping WS emit');
+  }
+
+  console.log(`[worker] ${provider}:${symbol} → saved to Redis + DB + WS`);
 }

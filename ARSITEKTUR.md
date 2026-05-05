@@ -10,14 +10,11 @@
 | -------------- | ----------------------------- | ---------------------------------- |
 | Frontend       | Next.js 14 + TypeScript       | SSR, performa, App Router          |
 | Backend        | Express.js + TypeScript       | Fleksibel, mudah di-extend         |
+| Real-time      | Socket.io (WebSocket)         | Update grafik instan tanpa polling |
 | Database Utama | PostgreSQL                    | Reliable, ACID compliant           |
-| Time-Series DB | TimescaleDB (extension PG)    | Optimasi query data harga historis |
+| Time-Series DB | TimescaleDB (extension PG)    | Agregasi `time_bucket` otomatis    |
 | Cache          | Redis                         | Sub-millisecond, TTL otomatis      |
-| Queue          | BullMQ                        | Antrian proses agar tidak crash    |
-| ORM / Driver   | pg (node-postgres)            | Raw SQL, kontrol penuh query       |
-| API Eksternal  | Binance API / Polygon.io      | Data market real-time              |
-| AI Dev Tool    | Cursor 3 (Plan Mode + Agents) | AI-assisted development            |
-| Local Hosting  | Docker & Docker Compose       | Menjalankan DB & Redis lokal       |
+| Queue          | BullMQ                        | Dedicated Redis connection         |
 
 ---
 
@@ -27,93 +24,49 @@
 ┌─────────────────────────────────────┐
 │           Next.js Frontend           │
 │  Dashboard | Screening | Auth        │
-└──────────────┬──────────────────────┘
-               │ HTTP Request
-┌──────────────▼──────────────────────┐
+└──────────────┬──────────────▲───────┘
+               │ HTTP         │ WebSocket (market-update)
+┌──────────────▼──────────────┴───────┐
 │          Express.js Backend          │
-│  (Feature-Based Architecture)        │
-│  auth/ | market/ | screening/        │
+│  1. Startup Backfill (Gap Checker)   │
+│  2. Socket.io Server                 │
 └───────┬──────────────┬──────────────┘
         │              │
 ┌───────▼──────┐ ┌─────▼──────────────┐
 │    Redis      │ │  PostgreSQL         │
 │  Market Cache │ │  + TimescaleDB      │
-│  TTL: 60 det  │ │  User, Watchlist    │
-│  Session      │ │  PriceHistory       │
-│  Rate Limit   │ │  AuditLog           │
+│  Queue Store  │ │  time_bucket()      │
 └───────────────┘ └────────────────────┘
         ▲
 ┌───────┴──────────────────────────────┐
-│    Cron Job (tiap 1 menit)            │
-│    → Fetch Binance/Polygon API        │
-│    → BullMQ Queue                     │
+│    Worker BullMQ (per job)            │
+│    → Fetch Data (1m Klines)          │
 │    → Simpan ke Redis & DB             │
+│    → Emit WS: "market-update"        │
 └──────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Cara Kerja Cursor 3 di Proyek Ini
+## 3. Provider Layer
 
-### Plan Mode (Shift+Tab)
+### Routing Provider
 
-```text
-Developer tekan Shift+Tab
-       ↓
-Cursor riset codebase otomatis
-       ↓
-Cursor tanya clarifying questions
-       ↓
-Cursor buat plan dalam format Markdown
-       ↓
-Developer review & edit plan
-       ↓
-Simpan ke .cursor/plans/slice-X.md
-       ↓
-Eksekusi plan → Cursor coding
-```
+| Asset type | Provider | API Endpoint (Fix)                 |
+| ---------- | -------- | ---------------------------------- |
+| CRYPTO     | BINANCE  | `klines?interval=1m` (OHLC Akurat) |
+| STOCK      | POLYGON  | `/prev` (Free Tier Compatible)     |
 
-### Agents Window (Cmd+Shift+P → Agents Window)
+### Alur Penarikan Data (Hybrid Fetching)
 
-- Jalankan beberapa agent paralel untuk subtask berbeda
-- Bisa handoff task ke cloud jika laptop ditutup
-- Semua agent terpantau dalam satu tampilan
+Aplikasi menggunakan dua mekanisme untuk memastikan kelengkapan data:
 
-### /multitask
-
-- Pecah task besar jadi subagent paralel
-- Berguna saat ada beberapa file yang harus dibuat sekaligus
+1. **Startup Backfill (Smart Gap Checker)**: Saat server Express dijalankan (`npm run dev`), sistem secara otomatis mengecek `price_history`. Jika data kurang dari 7 hari (< 10.000 candle) atau terdapat gap waktu karena server mati, sistem akan *menarik data historis secara massal* dari provider dan menyimpannya ke DB.
+2. **Real-time Cron Job**: Setelah server berjalan, sebuah cron job akan berjalan setiap 1 menit untuk melakukan *fetching* candle terbaru saja via BullMQ worker, lalu memancarkannya via WebSocket.
 
 ---
 
 ## 4. Database Schema
-
----
-
-## 4. Database Schema (Raw SQL)
-
-### Table: users
-
-```sql
-CREATE TABLE users (
-  id TEXT PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL,
-  role TEXT DEFAULT 'TRADER',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### Table: watchlists
-
-```sql
-CREATE TABLE watchlists (
-  id TEXT PRIMARY KEY,
-  user_id TEXT REFERENCES users(id),
-  symbol TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
 
 ### Table: price_history (TimescaleDB hypertable)
 
@@ -131,112 +84,31 @@ CREATE TABLE price_history (
 SELECT create_hypertable('price_history', 'time');
 ```
 
-### Table: audit_logs
+### Penanganan Zona Waktu (Timezone)
 
-```sql
-CREATE TABLE audit_logs (
-  id TEXT PRIMARY KEY,
-  user_id TEXT REFERENCES users(id),
-  action TEXT NOT NULL,
-  detail TEXT,
-  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+Meskipun kolom `time` menggunakan `TIMESTAMP WITHOUT TIME ZONE`, sistem menjamin konsistensi waktu lintas-zona dengan cara:
+
+1. **Backend Query**: Menggunakan klausa `ORDER BY bucket_time DESC` diikuti dengan operasi `.reverse()` di JavaScript. Ini mencegah fungsi `NOW()` di PostgreSQL (yang selalu mengembalikan waktu UTC) memotong data terbaru jika server berlokasi di zona waktu yang berbeda.
+2. **Data Transfer**: Backend hanya mengirimkan format Unix Epoch Milliseconds murni ke Frontend.
+3. **Frontend Rendering**: Menggunakan `Intl.DateTimeFormat` bawaan browser untuk merender format tampilan waktu lokal pengguna di dalam *axis* grafik tanpa perhitungan manual.
 
 ---
 
-## 5. Strategi Caching
+## 5. Indikator Teknikal (UI Dashboard)
 
-### Pola Cache-Aside
-
-```text
-Request masuk → Cek Redis
-                    ↓
-        Ada?  → Return < 1ms ✅
-        Tidak? → Ambil dari DB/API
-               → Simpan Redis TTL 60 detik
-               → Return ke user
-```
-
-### Kenapa Cron Job, Bukan Fetch Per Request?
-
-```text
-❌ SALAH:
-User A → fetch Binance API (500ms, kena rate limit)
-User B → fetch Binance API (500ms, kena rate limit)
-
-✅ BENAR:
-Cron tiap 1 menit → fetch 1x → simpan Redis
-User A, B, C semua → baca Redis < 1ms
-```
+| Indikator       | Parameter         | Visual                      |
+| --------------- | ----------------- | --------------------------- |
+| MA 5            | Period: 5         | Garis Biru                  |
+| MA 20           | Period: 20        | Garis Oranye                |
+| MA 50           | Period: 50        | Garis Ungu                  |
+| Bollinger Bands | Period: 20, SD: 2 | Area Abu-abu                |
+| Stochastic      | %K: 14, %D: 3     | Panel Bawah                 |
 
 ---
 
-## 6. Scalability
+## 6. Fitur Unggulan
 
-| Masalah                | Solusi          | Implementasi                         |
-| ---------------------- | --------------- | ------------------------------------ |
-| Terlalu banyak request | Rate Limiting   | express-rate-limit: 100 req/menit/IP |
-| Queue proses panjang   | BullMQ          | Antrian FIFO, tidak crash            |
-| DB kelebihan koneksi   | Connection Pool | pg-pool max 10 koneksi               |
-| API trading overload   | Cron + Cache    | 1 fetch/menit, semua baca Redis      |
-| Frontend lambat        | SSR + ISR       | Next.js Incremental Static Regen     |
-
----
-
-## 7. Indikator Teknikal
-
-| Indikator       | Parameter         | Sinyal BUY                 | Sinyal SELL               |
-| --------------- | ----------------- | -------------------------- | ------------------------- |
-| MA 20           | Period: 20        | Harga > MA20               | Harga < MA20              |
-| MA 30           | Period: 30        | MA20 > MA30 (golden cross) | MA20 < MA30 (death cross) |
-| Bollinger Bands | Period: 20, SD: 2 | Harga sentuh lower band    | Harga sentuh upper band   |
-| Stochastic      | %K: 14            | %K < 20 (oversold)         | %K > 80 (overbought)      |
-
-**Logika Sinyal Gabungan:**
-
-```text
-BUY  → harga > MA20 AND MA20 > MA30 AND stochastic %K < 20
-SELL → harga < MA20 AND MA20 < MA30 AND stochastic %K > 80
-HOLD → kondisi lainnya
-```
-
----
-
-## 8. Fitur Per Role
-
-| Fitur           | TRADER | ADMIN |
-| --------------- | ------ | ----- |
-| Dashboard Chart | ✅     | ✅    |
-| Screening Table | ✅     | ✅    |
-| Watchlist       | ✅     | ✅    |
-| Export CSV      | ✅     | ✅    |
-| Auto-refresh    | ✅     | ✅    |
-| User Management | ❌     | ✅    |
-| Audit Log       | ❌     | ✅    |
-| Setting Sistem  | ❌     | ✅    |
-
----
-
-## 9. Environment Variables (.env)
-
-```env
-# Database
-DATABASE_URL="postgresql://user:pass@localhost:5432/trading_db"
-
-# Redis
-REDIS_URL="redis://localhost:6379"
-
-# API Trading
-BINANCE_API_KEY="your_key_here"
-BINANCE_SECRET_KEY="your_secret_here"
-POLYGON_API_KEY="your_key_here"
-
-# Auth
-NEXTAUTH_SECRET="random_secret_string"
-NEXTAUTH_URL="http://localhost:3000"
-JWT_SECRET="express_jwt_secret_string"
-
-# App
-NEXT_PUBLIC_API_URL="http://localhost:4000"
-```
+* **Real-time Push**: Menggunakan WebSocket agar grafik terupdate otomatis saat data masuk.
+* **Auto Aggregation**: Menggunakan `time_bucket` agar candle otomatis menggendut di timeframe besar (1D/1W).
+* **Timezone Localization**: Grafik otomatis mendeteksi dan menampilkan waktu lokal pengguna.
+* **Premium UI**: Desain modern dengan glassmorphism dan skema warna dark mode yang dalam.

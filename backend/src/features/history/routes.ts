@@ -18,11 +18,23 @@ const querySchema = z.object({
   period: z.enum(['1H', '4H', '1D', '1W']).default('1D'),
 });
 
-const periodToHours: Record<z.infer<typeof querySchema>['period'], number> = {
-  '1H': 1,
-  '4H': 4,
-  '1D': 24,
-  '1W': 24 * 7,
+/**
+ * Config per period.
+ * Semua data di DB sudah 1m granularity (dari startup backfill + cron).
+ * time_bucket aggregation mengubah 1m → interval yang sesuai untuk chart.
+ */
+const periodConfig: Record<
+  string,
+  {
+    bucket: string;
+    bucketLimit: number;
+    hoursBack: number;
+  }
+> = {
+  '1H': { bucket: '1 minute', bucketLimit: 240, hoursBack: 4 }, // 4 jam ke belakang (240 candle)
+  '4H': { bucket: '5 minutes', bucketLimit: 288, hoursBack: 24 }, // 24 jam ke belakang (288 candle)
+  '1D': { bucket: '15 minutes', bucketLimit: 672, hoursBack: 24 * 7 }, // 7 hari ke belakang (672 candle)
+  '1W': { bucket: '1 hour', bucketLimit: 168, hoursBack: 24 * 7 }, // 7 hari ke belakang (168 candle)
 };
 
 historyRouter.get('/:symbol', async (req, res) => {
@@ -37,40 +49,48 @@ historyRouter.get('/:symbol', async (req, res) => {
 
   const { symbol } = paramsParsed.data;
   const { period } = queryParsed.data;
-  const hours = periodToHours[period];
   const cacheKey = `endpoint:history:${symbol}:period:${period}`;
+
   const cached = await getCache(cacheKey);
   if (cached) {
     return sendSuccess(res, cached);
   }
 
+  const cfg = periodConfig[period] ?? periodConfig['1D'];
+
   try {
-    const result = await query<{
-      symbol: string;
-      open: number;
-      high: number;
-      low: number;
-      close: number;
-      volume: number;
-      time: string;
-    }>(
+    const result = await query(
       `
-        SELECT symbol, open, high, low, close, volume, time
+        SELECT
+          time_bucket($1::interval, time) AS bucket_time,
+          first(open, time) as open,
+          max(high) as high,
+          min(low) as low,
+          last(close, time) as close,
+          sum(volume) as volume
         FROM price_history
-        WHERE symbol = $1
-          AND time >= NOW() - ($2::text || ' hours')::interval
-        ORDER BY time ASC;
+        WHERE symbol = $2
+          AND time >= NOW() - make_interval(hours => $4)
+        GROUP BY bucket_time
+        ORDER BY bucket_time DESC
+        LIMIT $3;
       `,
-      [symbol, hours],
+      [cfg.bucket, symbol, cfg.bucketLimit, cfg.hoursBack],
     );
 
-    const payload = {
-      symbol,
-      period,
-      points: result.rows,
-    };
+    const points = result.rows
+      .map((r: any) => ({
+        time: new Date(r.bucket_time).getTime(), // UTC epoch ms — angka pasti, tidak ambigu
+        open: Number(r.open),
+        high: Number(r.high),
+        low: Number(r.low),
+        close: Number(r.close),
+        volume: Number(r.volume),
+      }))
+      .reverse();
 
-    await setCache(cacheKey, payload, 60);
+    const payload = { symbol, period, points };
+    await setCache(cacheKey, payload, 15);
     return sendSuccess(res, payload);
   } catch {
     return sendError(res, 'internal_error');

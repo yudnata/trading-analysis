@@ -22,7 +22,7 @@ async function run(): Promise<void> {
   console.log("Cache hit:", hit?.value === "ok" ? "ok" : "failed");
 
   startMarketDataWorker();
-  await enqueueMarketDataJob({ symbol: "BTCUSDT" });
+  await enqueueMarketDataJob({ symbol: "BTCUSDT", provider: "BINANCE" });
   await delay(6000);
 
   const marketCache = await getCache<{ symbol: string }>("market:BTCUSDT");
